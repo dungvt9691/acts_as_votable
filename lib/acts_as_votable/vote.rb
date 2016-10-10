@@ -5,6 +5,10 @@ module ActsAsVotable
 
     include Helpers::Words
 
+    self.primary_key = :id
+
+    before_create :set_id
+    
     if defined?(ProtectedAttributes) || ::ActiveRecord::VERSION::MAJOR < 4
       attr_accessible :votable_id, :votable_type,
         :voter_id, :voter_type,
@@ -22,7 +26,16 @@ module ActsAsVotable
 
     validates_presence_of :votable_id
     validates_presence_of :voter_id
+    
+    protected
 
+    def set_id
+      return if self.id
+      self.id = loop do
+        random_id = [*('a'..'z'),*('A'..'Z')].shuffle[0,11].join
+        break random_id unless self.class.exists?(id: random_id)
+      end
+    end
   end
 
 end
